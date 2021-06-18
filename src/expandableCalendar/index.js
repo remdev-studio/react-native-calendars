@@ -48,6 +48,12 @@ class ExpandableCalendar extends Component {
     onCalendarToggled: PropTypes.func,
     /** an option to disable the pan gesture and disable the opening and closing of the calendar (initialPosition will persist)*/
     disablePan: PropTypes.bool,
+    /** an option to enable switching positions by knob click */
+    enableKnobClick: PropTypes.bool,
+    /** possibility to render custom knob */
+    customKnob: PropTypes.any,
+    /** possibility to disable expand on day press */
+    disableDayPressExpand: PropTypes.bool,
     /** whether to hide the knob  */
     hideKnob: PropTypes.bool,
     /** source for the left arrow image */
@@ -61,11 +67,16 @@ class ExpandableCalendar extends Component {
     /** a threshold for opening the calendar with the pan gesture */
     openThreshold: PropTypes.number,
     /** a threshold for closing the calendar with the pan gesture */
-    closeThreshold: PropTypes.number
+    closeThreshold: PropTypes.number,
+    /** fires on calendar position change */
+    onPositionChange: PropTypes.func,
+    /** calendar preferences */
+    calendarPreferences: PropTypes.any
   };
 
   static defaultProps = {
     horizontal: true,
+    enableKnobClick: false,
     initialPosition: POSITIONS.CLOSED,
     firstDay: 0,
     leftArrowImageSource: require('../calendar/img/previous.png'),
@@ -81,7 +92,9 @@ class ExpandableCalendar extends Component {
     super(props);
 
     this.style = styleConstructor(props.theme);
-    this.closedHeight = CLOSED_HEIGHT + (props.hideKnob ? 0 : KNOB_CONTAINER_HEIGHT);
+    const {closedHeight, knobContainerHeight} = props.calendarPreferences || {};
+    this.closedHeight =
+      (closedHeight || CLOSED_HEIGHT) + (props.hideKnob ? 0 : knobContainerHeight || KNOB_CONTAINER_HEIGHT);
     this.numberOfWeeks = this.getNumberOfWeeksInMonth(XDate(this.props.context.date));
     this.openHeight = this.getOpenHeight();
 
@@ -192,7 +205,13 @@ class ExpandableCalendar extends Component {
     if (!this.props.horizontal) {
       return Math.max(commons.screenHeight, commons.screenWidth);
     }
-    return CLOSED_HEIGHT + WEEK_HEIGHT * (this.numberOfWeeks - 1) + (this.props.hideKnob ? 12 : KNOB_CONTAINER_HEIGHT);
+
+    const {closedHeight, weekHeight, knobContainerHeight} = this.props.calendarPreferences || {};
+    return (
+      (closedHeight || CLOSED_HEIGHT) +
+      (weekHeight || WEEK_HEIGHT) * (this.numberOfWeeks - 1) +
+      (this.props.hideKnob ? 12 : knobContainerHeight || KNOB_CONTAINER_HEIGHT)
+    );
   }
 
   getYear(date) {
@@ -271,7 +290,7 @@ class ExpandableCalendar extends Component {
   /** Animated */
 
   bounceToPosition(toValue) {
-    if (!this.props.disablePan) {
+    if (!this.props.disablePan || this.props.enableKnobClick) {
       const {deltaY, position} = this.state;
       const {openThreshold, closeThreshold} = this.props;
       const threshold =
@@ -307,7 +326,12 @@ class ExpandableCalendar extends Component {
 
   setPosition() {
     const isClosed = this._height === this.closedHeight;
-    this.setState({position: isClosed ? POSITIONS.CLOSED : POSITIONS.OPEN});
+    const newPosition = isClosed ? POSITIONS.CLOSED : POSITIONS.OPEN;
+
+    this.setState({position: newPosition});
+    if (this.props.onPositionChange) {
+      this.props.onPositionChange(isClosed);
+    }
   }
 
   resetWeekCalendarOpacity(isOpen) {
@@ -340,9 +364,24 @@ class ExpandableCalendar extends Component {
     this.scrollPage(true);
   };
 
+  onKnobPress = () => {
+    setTimeout(() => {
+      if (this.state.position === POSITIONS.OPEN) {
+        this.bounceToPosition(this.closedHeight);
+        return;
+      }
+
+      this.bounceToPosition(this.openHeight);
+    }, 0);
+  };
+
   onDayPress = value => {
     // {year: 2019, month: 4, day: 22, timestamp: 1555977600000, dateString: "2019-04-23"}
     _.invoke(this.props.context, 'setDate', value.dateString, UPDATE_SOURCES.DAY_PRESS);
+
+    if (this.props.disableDayPressExpand) {
+      return;
+    }
 
     setTimeout(() => {
       // to allows setDate to be completed
@@ -446,6 +485,19 @@ class ExpandableCalendar extends Component {
   }
 
   renderKnob() {
+    const CustomKnob = this.props.customKnob;
+    if (CustomKnob) {
+      return (
+        <CustomKnob
+          containerStyle={this.style.knobContainer}
+          style={this.style.knob}
+          pointerEvents={'none'}
+          testID={`${this.props.testID}-knob`}
+          onPress={this.onKnobPress}
+        />
+      );
+    }
+
     // TODO: turn to TouchableOpacity with onPress that closes it
     return (
       <View style={this.style.knobContainer} pointerEvents={'none'} testID={`${this.props.testID}-knob`}>
