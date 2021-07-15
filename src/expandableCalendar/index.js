@@ -71,7 +71,9 @@ class ExpandableCalendar extends Component {
     /** fires on calendar position change */
     onPositionChange: PropTypes.func,
     /** calendar preferences */
-    calendarPreferences: PropTypes.any
+    calendarPreferences: PropTypes.any,
+    /** calendar's open speed */
+    openSpeed: PropTypes.number
   };
 
   static defaultProps = {
@@ -305,7 +307,7 @@ class ExpandableCalendar extends Component {
 
       Animated.spring(deltaY, {
         toValue: this._height,
-        speed: SPEED,
+        speed: this.props.openSpeed || SPEED,
         bounciness: BOUNCINESS,
         useNativeDriver: false
       }).start(this.onAnimatedFinished);
@@ -347,7 +349,7 @@ class ExpandableCalendar extends Component {
     if (!this.props.horizontal && !isOpen) {
       Animated.spring(headerDeltaY, {
         toValue: 0,
-        speed: SPEED / 10,
+        speed: (this.props.openSpeed || SPEED) / 10,
         bounciness: 1,
         useNativeDriver: false
       }).start();
