@@ -75,7 +75,9 @@ class ExpandableCalendar extends Component {
     /** calendar's open speed */
     openSpeed: PropTypes.number,
     /** hide days of other month when expanded */
-    hideExtraDaysOnExpanded: PropTypes.bool
+    hideExtraDaysOnExpanded: PropTypes.bool,
+    /** custom bounciness */
+    bounciness: PropTypes.number
   };
 
   static defaultProps = {
@@ -310,7 +312,7 @@ class ExpandableCalendar extends Component {
       Animated.spring(deltaY, {
         toValue: this._height,
         speed: this.props.openSpeed || SPEED,
-        bounciness: BOUNCINESS,
+        bounciness: this.props.bounciness || BOUNCINESS,
         useNativeDriver: false
       }).start(this.onAnimatedFinished);
 
