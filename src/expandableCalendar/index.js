@@ -73,7 +73,9 @@ class ExpandableCalendar extends Component {
     /** calendar preferences */
     calendarPreferences: PropTypes.any,
     /** calendar's open speed */
-    openSpeed: PropTypes.number
+    openSpeed: PropTypes.number,
+    /** hide days of other month when expanded */
+    hideExtraDaysOnExpanded: PropTypes.bool
   };
 
   static defaultProps = {
@@ -555,7 +557,7 @@ class ExpandableCalendar extends Component {
               hideArrows={this.shouldHideArrows()}
               onPressArrowLeft={this.onPressArrowLeft}
               onPressArrowRight={this.onPressArrowRight}
-              hideExtraDays={!horizontal}
+              hideExtraDays={this.props.hideExtraDaysOnExpanded || !horizontal}
               renderArrow={this.renderArrow}
               staticHeader
             />
