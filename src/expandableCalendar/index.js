@@ -406,6 +406,14 @@ class ExpandableCalendar extends Component {
   onKnobPress = () => {
     setTimeout(() => {
       if (this.state.position === POSITIONS.OPEN) {
+        if (this.calendar) {
+          this.calendar.scrollToMonth(XDate());
+        }
+
+        if (typeof this.props.onMonthSwipe === 'function') {
+          this.props.onMonthSwipe({timestamp: Date.now()});
+        }
+
         this.bounceToPosition(this.closedHeight);
         return;
       }
