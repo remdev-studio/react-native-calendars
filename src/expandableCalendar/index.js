@@ -562,6 +562,7 @@ class ExpandableCalendar extends Component {
               hideExtraDays={this.props.hideExtraDaysOnExpanded || !horizontal}
               renderArrow={this.renderArrow}
               staticHeader
+              onMonthSwipe={this.props.onMonthSwipe}
             />
             {horizontal && this.renderWeekCalendar()}
             {!hideKnob && this.renderKnob()}

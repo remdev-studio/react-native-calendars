@@ -218,11 +218,11 @@ class CalendarList extends Component {
 
     const rowclone = this.state.rows;
     const newrows = [];
-    const visibleMonths = [];
+    const viewableRenderNum = this.props.pastScrollRange + this.props.futureScrollRange + 1;
 
     for (let i = 0; i < rowclone.length; i++) {
       let val = rowclone[i];
-      const rowShouldBeRendered = rowIsCloseToViewable(i, 1);
+      const rowShouldBeRendered = rowIsCloseToViewable(i, viewableRenderNum);
 
       if (rowShouldBeRendered && !rowclone[i].getTime) {
         val = this.state.openDate.clone().addMonths(i - this.props.pastScrollRange, true);
@@ -230,16 +230,19 @@ class CalendarList extends Component {
         val = this.state.texts[i];
       }
       newrows.push(val);
-      if (rowIsCloseToViewable(i, 0)) {
-        visibleMonths.push(xdateToData(val));
-      }
     }
 
-    _.invoke(this.props, 'onVisibleMonthsChange', visibleMonths);
+    if (viewableItems && viewableItems[0]) {
+      const index = viewableItems[0].index;
+      let val = rowclone[index];
+      val = this.state.openDate.clone().addMonths(index - this.props.pastScrollRange, true);
+      const cm = xdateToData(val);
+
+      _.invoke(this.props, 'onMonthSwipe', cm);
+    }
 
     this.setState({
-      rows: newrows,
-      currentMonth: parseDate(visibleMonths[0])
+      rows: newrows
     });
   };
 
@@ -294,6 +297,7 @@ class CalendarList extends Component {
           onViewableItemsChanged={this.onViewableItemsChanged}
           viewabilityConfig={this.viewabilityConfig}
           initialScrollIndex={this.state.openDate ? this.getMonthIndex(this.state.openDate) : false}
+          initialNumToRender={pastScrollRange + futureScrollRange + 1}
           showsVerticalScrollIndicator={showScrollIndicator}
           showsHorizontalScrollIndicator={horizontal && showScrollIndicator}
           testID={testID}
