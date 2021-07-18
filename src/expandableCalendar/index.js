@@ -206,6 +206,39 @@ class ExpandableCalendar extends Component {
     }
   }
 
+  onMonthSwipe = date => {
+    if (this.state.position === POSITIONS.CLOSED) {
+      return;
+    }
+
+    const {closedHeight, weekHeight, knobContainerHeight} = this.props.calendarPreferences || {};
+    const numberOfWeeks = this.getNumberOfWeeksInMonth(XDate(new Date(date.timestamp)));
+
+    const {deltaY} = this.state;
+    const threshold = 1;
+
+    const newHeight =
+      (closedHeight || CLOSED_HEIGHT) +
+      (weekHeight || WEEK_HEIGHT) * (numberOfWeeks - 1) +
+      (this.props.hideKnob ? 12 : knobContainerHeight || KNOB_CONTAINER_HEIGHT);
+
+    const diff = newHeight > this._height ? newHeight - this._height : this._height - newHeight;
+    if (diff >= threshold) {
+      this._height = newHeight;
+
+      Animated.spring(deltaY, {
+        toValue: newHeight,
+        speed: this.props.openSpeed || SPEED,
+        bounciness: this.props.bounciness || BOUNCINESS,
+        useNativeDriver: false
+      }).start(this.onAnimatedFinished);
+    }
+
+    if (typeof this.props.onMonthSwipe === 'function') {
+      this.props.onMonthSwipe(date);
+    }
+  };
+
   /** Utils */
   getOpenHeight() {
     if (!this.props.horizontal) {
@@ -562,7 +595,7 @@ class ExpandableCalendar extends Component {
               hideExtraDays={this.props.hideExtraDaysOnExpanded || !horizontal}
               renderArrow={this.renderArrow}
               staticHeader
-              onMonthSwipe={this.props.onMonthSwipe}
+              onMonthSwipe={this.onMonthSwipe}
             />
             {horizontal && this.renderWeekCalendar()}
             {!hideKnob && this.renderKnob()}
