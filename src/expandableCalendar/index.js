@@ -112,6 +112,8 @@ class ExpandableCalendar extends Component {
 
     this.wrapper = undefined;
     this.calendar = undefined;
+    this.calendarList = undefined;
+
     this.visibleMonth = this.getMonth(this.props.context.date);
     this.initialDate = props.context.date; // should be set only once!!!
     this.headerStyleOverride = {
@@ -165,6 +167,8 @@ class ExpandableCalendar extends Component {
   };
 
   updateNativeStyles() {
+    // this.calendarList && this.calendarList.setNativeProps({style: {height: isOpen ? 'auto' : 120}});
+
     this.wrapper?.setNativeProps(this._wrapperStyles);
     if (!this.props.horizontal) {
       this.header && this.header.setNativeProps(this._headerStyles);
@@ -352,7 +356,7 @@ class ExpandableCalendar extends Component {
       _.invoke(this.props, 'onCalendarToggled', isOpen);
 
       this.setPosition();
-      this.closeHeader(isOpen);
+      // this.closeHeader(isOpen);
       this.resetWeekCalendarOpacity(isOpen);
     }
   }
@@ -375,7 +379,7 @@ class ExpandableCalendar extends Component {
 
   resetWeekCalendarOpacity(isOpen) {
     this._weekCalendarStyles.style.opacity = isOpen ? 0 : 1;
-    this.updateNativeStyles();
+    this.updateNativeStyles(isOpen);
   }
 
   closeHeader(isOpen) {
@@ -404,22 +408,27 @@ class ExpandableCalendar extends Component {
   };
 
   onKnobPress = () => {
-    setTimeout(() => {
-      if (this.state.position === POSITIONS.OPEN) {
-        if (this.calendar) {
-          this.calendar.scrollToMonth(XDate());
-        }
+    if (this.state.position === POSITIONS.OPEN) {
+      this.bounceToPosition(this.closedHeight);
+      return;
+    }
 
-        if (typeof this.props.onMonthSwipe === 'function') {
-          this.props.onMonthSwipe({timestamp: Date.now()});
-        }
+    const date = this.props.context.date;
+    const {closedHeight, weekHeight, knobContainerHeight} = this.props.calendarPreferences || {};
+    const numberOfWeeks = this.getNumberOfWeeksInMonth(XDate(date));
+    const threshold = 1;
 
-        this.bounceToPosition(this.closedHeight);
-        return;
-      }
+    const newHeight =
+      (closedHeight || CLOSED_HEIGHT) +
+      (weekHeight || WEEK_HEIGHT) * (numberOfWeeks - 1) +
+      (this.props.hideKnob ? 12 : knobContainerHeight || KNOB_CONTAINER_HEIGHT);
 
-      this.bounceToPosition(this.openHeight);
-    }, 0);
+    const diff = newHeight > this._height ? newHeight - this._height : this._height - newHeight;
+    if (diff >= threshold) {
+      this.openHeight = newHeight;
+    }
+
+    this.bounceToPosition(this.openHeight);
   };
 
   onDayPress = value => {
@@ -585,26 +594,28 @@ class ExpandableCalendar extends Component {
             renderArrow={this.renderArrow}
           />
         ) : (
-          <Animated.View ref={e => (this.wrapper = e)} style={{height: deltaY}} {...this.panResponder.panHandlers}>
-            <CalendarList
-              testID="calendar"
-              horizontal={horizontal}
-              {...others}
-              theme={themeObject}
-              ref={r => (this.calendar = r)}
-              current={this.initialDate}
-              onDayPress={this.onDayPress}
-              onVisibleMonthsChange={this.onVisibleMonthsChange}
-              pagingEnabled
-              scrollEnabled={isOpen}
-              hideArrows={this.shouldHideArrows()}
-              onPressArrowLeft={this.onPressArrowLeft}
-              onPressArrowRight={this.onPressArrowRight}
-              hideExtraDays={this.props.hideExtraDaysOnExpanded || !horizontal}
-              renderArrow={this.renderArrow}
-              staticHeader
-              onMonthSwipe={this.onMonthSwipe}
-            />
+          <Animated.View ref={e => (this.wrapper = e)} style={{height: deltaY}}>
+            <Animated.View ref={e => (this.calendarList = e)}>
+              <CalendarList
+                testID="calendar"
+                horizontal={horizontal}
+                {...others}
+                theme={themeObject}
+                ref={r => (this.calendar = r)}
+                current={this.initialDate}
+                onDayPress={this.onDayPress}
+                onVisibleMonthsChange={this.onVisibleMonthsChange}
+                pagingEnabled
+                scrollEnabled={isOpen}
+                hideArrows={this.shouldHideArrows()}
+                onPressArrowLeft={this.onPressArrowLeft}
+                onPressArrowRight={this.onPressArrowRight}
+                hideExtraDays={this.props.hideExtraDaysOnExpanded || !horizontal}
+                renderArrow={this.renderArrow}
+                staticHeader
+                onMonthSwipe={this.onMonthSwipe}
+              />
+            </Animated.View>
             {horizontal && this.renderWeekCalendar()}
             {!hideKnob && this.renderKnob()}
             {!horizontal && this.renderHeader()}
