@@ -77,7 +77,8 @@ class ExpandableCalendar extends Component {
     /** hide days of other month when expanded */
     hideExtraDaysOnExpanded: PropTypes.bool,
     /** custom bounciness */
-    bounciness: PropTypes.number
+    bounciness: PropTypes.number,
+    currentMonthTimestamp: PropTypes.any
   };
 
   static defaultProps = {
@@ -413,9 +414,10 @@ class ExpandableCalendar extends Component {
       return;
     }
 
-    const date = this.props.context.date;
+    const currentDate = this.props.currentMonthTimestamp ? this.props.currentMonthTimestamp : this.props.context.date;
+
     const {closedHeight, weekHeight, knobContainerHeight} = this.props.calendarPreferences || {};
-    const numberOfWeeks = this.getNumberOfWeeksInMonth(XDate(date));
+    const numberOfWeeks = this.getNumberOfWeeksInMonth(XDate(currentDate));
     const threshold = 1;
 
     const newHeight =
