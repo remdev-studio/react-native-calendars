@@ -169,7 +169,7 @@ class ExpandableCalendar extends Component {
   };
 
   updateNativeStyles() {
-    // this.calendarList && this.calendarList.setNativeProps({style: {height: isOpen ? 'auto' : 120}});
+    // this.calendarList && this.calendarList.setNativeProps({style: {opacity: isOpen ? 1 : 0}});
 
     this.wrapper?.setNativeProps(this._wrapperStyles);
     if (!this.props.horizontal) {
@@ -217,28 +217,15 @@ class ExpandableCalendar extends Component {
       return;
     }
 
-    const {closedHeight, weekHeight, knobContainerHeight} = this.props.calendarPreferences || {};
-    const numberOfWeeks = this.getNumberOfWeeksInMonth(XDate(new Date(date.timestamp)));
+    // const {deltaY} = this.state;
+    // const newHeight = 363; // 6 month
 
-    const {deltaY} = this.state;
-    const threshold = 1;
-
-    const newHeight =
-      (closedHeight || CLOSED_HEIGHT) +
-      (weekHeight || WEEK_HEIGHT) * (numberOfWeeks - 1) +
-      (this.props.hideKnob ? 12 : knobContainerHeight || KNOB_CONTAINER_HEIGHT);
-
-    const diff = newHeight > this._height ? newHeight - this._height : this._height - newHeight;
-    if (diff >= threshold) {
-      this._height = newHeight;
-
-      Animated.spring(deltaY, {
-        toValue: newHeight,
-        speed: this.props.openSpeed || SPEED,
-        bounciness: this.props.bounciness || BOUNCINESS,
-        useNativeDriver: false
-      }).start(this.onAnimatedFinished);
-    }
+    // Animated.spring(deltaY, {
+    //   toValue: newHeight,
+    //   speed: this.props.openSpeed || SPEED,
+    //   bounciness: this.props.bounciness || BOUNCINESS,
+    //   useNativeDriver: false
+    // }).start(this.onAnimatedFinished);
 
     if (typeof this.props.onMonthSwipe === 'function') {
       this.props.onMonthSwipe(date);
@@ -415,22 +402,24 @@ class ExpandableCalendar extends Component {
       return;
     }
 
-    const currentDate = this.props.currentMonthTimestamp ? this.props.currentMonthTimestamp : this.props.context.date;
+    // const currentDate = this.props.currentMonthTimestamp ? this.props.currentMonthTimestamp : this.props.context.date;
 
-    const {closedHeight, weekHeight, knobContainerHeight} = this.props.calendarPreferences || {};
-    const numberOfWeeks = this.getNumberOfWeeksInMonth(XDate(currentDate));
-    const threshold = 1;
+    // const {closedHeight, weekHeight, knobContainerHeight} = this.props.calendarPreferences || {};
+    // const numberOfWeeks = this.getNumberOfWeeksInMonth(XDate(currentDate));
+    // const threshold = 1;
 
-    const newHeight =
-      (closedHeight || CLOSED_HEIGHT) +
-      (weekHeight || WEEK_HEIGHT) * (numberOfWeeks - 1) +
-      (this.props.hideKnob ? 12 : knobContainerHeight || KNOB_CONTAINER_HEIGHT);
+    // const newHeight =
+    //   (closedHeight || CLOSED_HEIGHT) +
+    //   (weekHeight || WEEK_HEIGHT) * (6 - 1) +
+    //   (this.props.hideKnob ? 12 : knobContainerHeight || KNOB_CONTAINER_HEIGHT);
 
-    const diff = newHeight > this._height ? newHeight - this._height : this._height - newHeight;
-    if (diff >= threshold) {
-      this.openHeight = newHeight;
-    }
+    // const diff = newHeight > this._height ? newHeight - this._height : this._height - newHeight;
+    // if (diff >= threshold) {
+    //   this.openHeight = newHeight;
+    // }
 
+    const newHeight = 363;
+    this.openHeight = newHeight;
     this.bounceToPosition(this.openHeight);
   };
 
@@ -619,6 +608,18 @@ class ExpandableCalendar extends Component {
                 onMonthSwipe={this.onMonthSwipe}
               />
             </Animated.View>
+            {!!this.props.isClosed && (
+              <Animated.View
+                style={{
+                  height: '100%',
+                  width: '100%',
+                  position: 'absolute',
+                  top: 100,
+                  left: 0,
+                  backgroundColor: '#F7F3ED'
+                }}
+              />
+            )}
             {horizontal && this.renderWeekCalendar()}
             {!hideKnob && this.renderKnob()}
             {!horizontal && this.renderHeader()}
