@@ -78,7 +78,8 @@ class ExpandableCalendar extends Component {
     hideExtraDaysOnExpanded: PropTypes.bool,
     /** custom bounciness */
     bounciness: PropTypes.number,
-    currentMonthTimestamp: PropTypes.any
+    currentMonthTimestamp: PropTypes.any,
+    calendarRef: PropTypes.any
   };
 
   static defaultProps = {
@@ -603,7 +604,7 @@ class ExpandableCalendar extends Component {
                 horizontal={horizontal}
                 {...others}
                 theme={themeObject}
-                ref={r => (this.calendar = r)}
+                ref={this.props.calendarRef}
                 current={this.initialDate}
                 onDayPress={this.onDayPress}
                 onVisibleMonthsChange={this.onVisibleMonthsChange}
