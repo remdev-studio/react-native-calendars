@@ -79,7 +79,8 @@ class ExpandableCalendar extends Component {
     /** custom bounciness */
     bounciness: PropTypes.number,
     currentMonthTimestamp: PropTypes.any,
-    calendarRef: PropTypes.any
+    calendarRef: PropTypes.any,
+    hideBackgroundColor: PropTypes.string,
   };
 
   static defaultProps = {
@@ -91,7 +92,8 @@ class ExpandableCalendar extends Component {
     rightArrowImageSource: require('../calendar/img/next.png'),
     allowShadow: true,
     openThreshold: PAN_GESTURE_THRESHOLD,
-    closeThreshold: PAN_GESTURE_THRESHOLD
+    closeThreshold: PAN_GESTURE_THRESHOLD,
+    hideBackgroundColor: '#F7F3ED',
   };
 
   static positions = POSITIONS;
@@ -616,7 +618,7 @@ class ExpandableCalendar extends Component {
                   position: 'absolute',
                   top: 100,
                   left: 0,
-                  backgroundColor: '#F7F3ED'
+                  backgroundColor: this.props.hideBackgroundColor || '#F7F3ED'
                 }}
               />
             )}
